@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Will You Go On a Date With Me?</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<canvas id="particle-canvas"></canvas>
+<div class="petals" id="petals"></div>
+
+<!-- ════ SCREENS ════ -->
+<div class="screens" id="screens">
+
+  <!-- 0: HERO -->
+  <div class="screen" id="screen-hero">
+    <div class="hero-bg-orb orb1"></div>
+    <div class="hero-bg-orb orb2"></div>
+    <div class="hero-bg-orb orb3"></div>
+    <div class="hero-content" id="hero-content">
+      <span class="hero-heart" id="hero-heart">💌</span>
+      <h1 class="hero-title">
+        <span class="reveal-line">Will you go on a</span>
+        <em class="reveal-line delay1">date with me?</em>
+      </h1>
+      <p class="hero-sub reveal-line delay2" id="hero-sub">I'd love to take you somewhere truly special.<br>What do you say?</p>
+      <div class="hero-buttons reveal-line delay3" id="hero-buttons">
+        <button class="btn-yes-hero" id="yes-btn" onclick="onYes()">Yes, absolutely! 🥰</button>
+        <button class="btn-no-hero" id="no-btn" onclick="runAway()">No 😢</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1: ACTIVITIES -->
+  <div class="screen screen-step" id="screen-activities">
+    <div class="step-header">
+      <div class="step-pill">Step 1 of 4</div>
+      <h2 class="step-title">What should we do?</h2>
+      <p class="step-sub">Pick everything that sounds fun!</p>
+    </div>
+    <div class="cards-grid multi" id="activities-grid"></div>
+    <div class="step-footer">
+      <button class="btn-next" onclick="goTo(2)">Next → Lunch</button>
+    </div>
+  </div>
+
+  <!-- 2: LUNCH -->
+  <div class="screen screen-step" id="screen-lunch">
+    <div class="step-header">
+      <div class="step-pill">Step 2 of 4</div>
+      <h2 class="step-title">Where for lunch? ☀️</h2>
+      <p class="step-sub">Pick one spot for our midday meal.</p>
+    </div>
+    <div class="cards-grid" id="lunch-grid"></div>
+    <div class="step-footer">
+      <button class="btn-back" onclick="goTo(1)">← Back</button>
+      <button class="btn-next" onclick="goTo(3)">Next → Dinner</button>
+    </div>
+  </div>
+
+  <!-- 3: DINNER -->
+  <div class="screen screen-step" id="screen-dinner">
+    <div class="step-header">
+      <div class="step-pill">Step 3 of 4</div>
+      <h2 class="step-title">And for dinner? 🌙</h2>
+      <p class="step-sub">Something special for the evening.</p>
+    </div>
+    <div class="cards-grid" id="dinner-grid"></div>
+    <div class="step-footer">
+      <button class="btn-back" onclick="goTo(2)">← Back</button>
+      <button class="btn-next" onclick="goTo(4)">Next → Dessert</button>
+    </div>
+  </div>
+
+  <!-- 4: DESSERT -->
+  <div class="screen screen-step" id="screen-dessert">
+    <div class="step-header">
+      <div class="step-pill">Step 4 of 4</div>
+      <h2 class="step-title">We can't forget dessert! 🍬</h2>
+      <p class="step-sub">Pick your perfect sweet ending.</p>
+    </div>
+    <div class="cards-grid" id="dessert-grid"></div>
+    <div class="step-footer">
+      <button class="btn-back" onclick="goTo(3)">← Back</button>
+      <button class="btn-next" onclick="goTo(5)">See the Plan ✨</button>
+    </div>
+  </div>
+
+  <!-- 5: SUMMARY -->
+  <div class="screen screen-step" id="screen-summary">
+    <div class="step-header">
+      <div class="step-pill">Our Date 💕</div>
+      <h2 class="step-title">Here's the plan</h2>
+      <p class="step-sub">Looking good? Send the invitation!</p>
+    </div>
+    <div class="summary-card" id="summary-card">
+      <div class="summary-row anim-row">
+        <span class="summary-icon">🗓️</span>
+        <div><div class="summary-label">Activities</div><div class="summary-value" id="sum-activities">—</div></div>
+      </div>
+      <div class="summary-row anim-row">
+        <span class="summary-icon">☀️</span>
+        <div><div class="summary-label">Lunch</div><div class="summary-value" id="sum-lunch">—</div></div>
+      </div>
+      <div class="summary-row anim-row">
+        <span class="summary-icon">🌙</span>
+        <div><div class="summary-label">Dinner</div><div class="summary-value" id="sum-dinner">—</div></div>
+      </div>
+      <div class="summary-row anim-row">
+        <span class="summary-icon">🍬</span>
+        <div><div class="summary-label">Dessert</div><div class="summary-value" id="sum-dessert">—</div></div>
+      </div>
+    </div>
+    <p class="incomplete-note" id="incomplete-note" style="display:none">Go back and choose lunch, dinner &amp; dessert first ✨</p>
+    <div class="step-footer">
+      <button class="btn-back" onclick="goTo(4)">← Back</button>
+      <button class="btn-send" id="send-btn" onclick="openModal()" disabled>Send the Invitation 💌</button>
+    </div>
+  </div>
+
+</div><!-- /screens -->
+
+<!-- Progress dots -->
+<div class="progress-dots" id="progress-dots">
+  <span class="dot active" onclick="goTo(0)"></span>
+  <span class="dot" onclick="goTo(1)"></span>
+  <span class="dot" onclick="goTo(2)"></span>
+  <span class="dot" onclick="goTo(3)"></span>
+  <span class="dot" onclick="goTo(4)"></span>
+  <span class="dot" onclick="goTo(5)"></span>
+</div>
+
+<!-- ════ MODAL ════ -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <span class="modal-heart">💘</span>
+    <h2 class="modal-title">Will you go on a date with me?</h2>
+    <p class="modal-body">I put together the most perfect day, just for us. I really hope you say yes.</p>
+    <div class="modal-itinerary">
+      <h4>Our Itinerary</h4>
+      <ul id="modal-list"></ul>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn-modal-yes" onclick="respond(true)">Yes, I'd love to! 🥰</button>
+      <button class="btn-modal-no" onclick="respond(false)">Maybe another time…</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ RESPONSE SCREENS ════ -->
+<div class="response-screen" id="response-yes">
+  <div class="confetti" id="confetti"></div>
+  <span class="response-icon pop-in">🥳</span>
+  <h2 class="response-title slide-up">It's a date!</h2>
+  <p class="response-sub slide-up delay1">I'm so excited! Get ready for the best day ever. 💕</p>
+  <button class="btn-reset slide-up delay2" onclick="reset()">Plan another date</button>
+</div>
+
+<div class="response-screen" id="response-no">
+  <span class="response-icon"><img src="sad-cat-sad-cat-meme.png" alt="sad face" class="response-icon-img" /></span>
+  <h2 class="response-title">Maybe next time…</h2>
+  <p class="response-sub">The invitation will always be open whenever you're ready. 💌</p>
+  <button class="btn-reset" onclick="reset()">Try again</button>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
