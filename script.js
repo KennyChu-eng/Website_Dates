@@ -48,7 +48,7 @@ const DATA = {
     { emoji:'🍦', name:'Penny Ice Creamery', desc:'Small-batch ice cream made with local ingredients and creative seasonal flavors.', url:'https://www.thepennyicecreamery.com/' },
   ],
 };
-
+ 
 /* ────── STATE ────── */
 const state = {
   activities: new Set(),
@@ -56,20 +56,27 @@ const state = {
   dinner:  null,
   dessert: null,
 };
-
+ 
 /* ────── EMAILJS INIT ────── */
 emailjs.init(EMAILJS_PUBLIC_KEY);
-
+ 
 /* ────── SEND EMAIL TO ADMIN ────── */
 async function sendAdminEmail() {
+  // Guard: catch un-filled placeholders early with a clear message
+  if (!EMAILJS_SERVICE_ID  || EMAILJS_SERVICE_ID  === 'YOUR_SERVICE_ID'  ||
+      !EMAILJS_TEMPLATE_ID || EMAILJS_TEMPLATE_ID === 'YOUR_TEMPLATE_ID' ||
+      !EMAILJS_PUBLIC_KEY  || EMAILJS_PUBLIC_KEY  === 'YOUR_PUBLIC_KEY') {
+    throw new Error('EmailJS credentials not set — replace YOUR_SERVICE_ID, YOUR_TEMPLATE_ID and YOUR_PUBLIC_KEY in script.js');
+  }
+ 
   const actNames = [...state.activities].map(i =>
     DATA.activities[i].emoji + ' ' + DATA.activities[i].name
   ).join(', ') || 'None selected';
-
+ 
   const lunch   = state.lunch   !== null ? DATA.lunch[state.lunch].emoji   + ' ' + DATA.lunch[state.lunch].name   : '—';
   const dinner  = state.dinner  !== null ? DATA.dinner[state.dinner].emoji  + ' ' + DATA.dinner[state.dinner].name  : '—';
   const dessert = state.dessert !== null ? DATA.dessert[state.dessert].emoji + ' ' + DATA.dessert[state.dessert].name : '—';
-
+ 
   const templateParams = {
     activities:   actNames,
     lunch:        lunch,
@@ -77,14 +84,17 @@ async function sendAdminEmail() {
     dessert:      dessert,
     submitted_at: new Date().toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' }),
   };
-
-  await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+ 
+  console.log('Sending to EmailJS:', EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+  const result = await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+  console.log('EmailJS response:', result);
+  return result;
 }
-
+ 
 /* ────── SCREENS ────── */
 let currentScreen = 0;
 const TOTAL_SCREENS = 6;
-
+ 
 function goTo(index) {
   if (index < 0 || index >= TOTAL_SCREENS) return;
   currentScreen = index;
@@ -93,7 +103,7 @@ function goTo(index) {
   document.getElementById('progress-dots').style.opacity = index === 0 ? '0' : '1';
   if (index === 5) animateSummaryRows();
 }
-
+ 
 /* ────── BUILD GRIDS ────── */
 function buildGrid(containerId, items, category, multi = false) {
   const grid = document.getElementById(containerId);
@@ -118,7 +128,7 @@ function buildGrid(containerId, items, category, multi = false) {
     grid.appendChild(card);
   });
 }
-
+ 
 function selectCard(card, category, index, multi, grid) {
   if (multi) {
     card.classList.toggle('selected');
@@ -130,14 +140,14 @@ function selectCard(card, category, index, multi, grid) {
     state[category] = index;
   }
 }
-
+ 
 function triggerRipple(card) {
   card.classList.remove('ripple');
   void card.offsetWidth;
   card.classList.add('ripple');
   setTimeout(() => card.classList.remove('ripple'), 500);
 }
-
+ 
 /* ────── SUMMARY ────── */
 function animateSummaryRows() {
   document.querySelectorAll('.anim-row').forEach((row, i) => {
@@ -148,24 +158,24 @@ function animateSummaryRows() {
   });
   updateSummary();
 }
-
+ 
 function updateSummary() {
   const actNames = [...state.activities].map(i => DATA.activities[i].emoji + ' ' + DATA.activities[i].name);
   document.getElementById('sum-activities').textContent = actNames.length ? actNames.join(', ') : '—';
-
+ 
   const lunch   = state.lunch   !== null ? DATA.lunch[state.lunch].emoji   + ' ' + DATA.lunch[state.lunch].name   : null;
   const dinner  = state.dinner  !== null ? DATA.dinner[state.dinner].emoji  + ' ' + DATA.dinner[state.dinner].name  : null;
   const dessert = state.dessert !== null ? DATA.dessert[state.dessert].emoji + ' ' + DATA.dessert[state.dessert].name : null;
-
+ 
   document.getElementById('sum-lunch').textContent   = lunch   || '—';
   document.getElementById('sum-dinner').textContent  = dinner  || '—';
   document.getElementById('sum-dessert').textContent = dessert || '—';
-
+ 
   const ready = lunch && dinner && dessert;
   document.getElementById('send-btn').disabled = !ready;
   document.getElementById('incomplete-note').style.display = ready ? 'none' : 'block';
 }
-
+ 
 /* ────── MODAL ────── */
 function openModal() {
   const list = document.getElementById('modal-list');
@@ -180,22 +190,22 @@ function openModal() {
   document.getElementById('email-status').textContent = '';
   document.getElementById('modal').classList.add('open');
 }
-
+ 
 function addModalItem(list, icon, text, delay) {
   const li = document.createElement('li');
   li.style.animationDelay = `${delay * 0.1 + 0.2}s`;
   li.innerHTML = `<span>${icon}</span><span>${text}</span>`;
   list.appendChild(li);
 }
-
+ 
 function closeModal() {
   document.getElementById('modal').classList.remove('open');
 }
-
+ 
 document.getElementById('modal').addEventListener('click', e => {
   if (e.target === document.getElementById('modal')) closeModal();
 });
-
+ 
 /* ────── RESPOND ────── */
 async function respond(yes) {
   if (!yes) {
@@ -203,26 +213,32 @@ async function respond(yes) {
     document.getElementById('response-no').classList.add('show');
     return;
   }
-
+ 
   // Disable button and show sending state while email goes out
   const yesBtn = document.getElementById('modal-yes-btn');
   const status = document.getElementById('email-status');
   yesBtn.disabled = true;
   yesBtn.textContent = 'Sending… 💌';
   status.textContent = '';
-
+ 
   try {
     await sendAdminEmail();
+    status.textContent = '';
   } catch (err) {
     console.error('EmailJS error:', err);
-    // Still show the celebration — don't ruin the moment for a failed email
+    // Show the real error in the modal so you can debug it
+    status.style.color = '#C97F8A';
+    status.textContent = '⚠️ ' + (err.text || err.message || JSON.stringify(err));
+    yesBtn.disabled = false;
+    yesBtn.textContent = "Yes, I'd love to! 🥰";
+    return; // Don't proceed until email works
   }
-
+ 
   closeModal();
   spawnConfetti();
   document.getElementById('response-yes').classList.add('show');
 }
-
+ 
 /* ────── CONFETTI ────── */
 function spawnConfetti() {
   const c = document.getElementById('confetti');
@@ -243,7 +259,7 @@ function spawnConfetti() {
     c.appendChild(dot);
   }
 }
-
+ 
 /* ────── PETALS ────── */
 (function spawnPetals() {
   const container = document.getElementById('petals');
@@ -261,20 +277,20 @@ function spawnConfetti() {
     container.appendChild(p);
   }
 })();
-
+ 
 /* ────── PARTICLE CANVAS ────── */
 (function initParticles() {
   const canvas = document.getElementById('particle-canvas');
   const ctx    = canvas.getContext('2d');
   let W, H, particles = [];
-
+ 
   function resize() {
     W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
   }
   resize();
   window.addEventListener('resize', resize);
-
+ 
   function makeParticle() {
     return {
       x: Math.random() * W, y: Math.random() * H,
@@ -286,7 +302,7 @@ function spawnConfetti() {
     };
   }
   for (let i = 0; i < 55; i++) particles.push(makeParticle());
-
+ 
   function draw() {
     ctx.clearRect(0, 0, W, H);
     particles.forEach(p => {
@@ -305,26 +321,26 @@ function spawnConfetti() {
   }
   draw();
 })();
-
+ 
 /* ────── YES HANDLER ────── */
 function onYes() {
   document.getElementById('no-btn').style.display = 'none';
   document.getElementById('hero-sub').textContent = "Yay! Now let's build the perfect date 🌸";
   setTimeout(() => goTo(1), 340);
 }
-
+ 
 /* ────── RUNAWAY NO ────── */
 const noBtn   = document.getElementById('no-btn');
 const heroSub = document.getElementById('hero-sub');
 let noAttempts = 0;
-
+ 
 const taunts = [
   "Are you sure? 🥺", "Think again…", "Please reconsider! 💕",
   "You can't catch me!", "Nope, not today 😄", "Haha, too slow!",
   "Keep trying 😏", "Nice try though!", "I don't think so 💨",
   "You'll say yes eventually 😇",
 ];
-
+ 
 function growYesBtn() {
   const maxScale = 20;
   const step     = 1.5;
@@ -334,12 +350,12 @@ function growYesBtn() {
   document.getElementById('yes-btn').style.transform = `scale(${next})`;
   document.getElementById('yes-btn').style.boxShadow =
     `0 ${4 + next * 6}px ${20 + next * 14}px rgba(201,127,138,${Math.min(0.3 + next * 0.05, 0.9)})`;
-
+ 
   // Hide the counter the moment the button starts growing — it'll be buried anyway
   const noCounter = document.getElementById('no-counter');
   if (noCounter) noCounter.style.display = 'none';
 }
-
+ 
 function runAway() {
   if (noAttempts === 0) {
     const r = noBtn.getBoundingClientRect();
@@ -351,22 +367,22 @@ function runAway() {
     noBtn.style.margin   = '0';
     document.body.appendChild(noBtn);
   }
-
+ 
   noAttempts++;
-
+ 
   const margin = 16;
   const maxX = window.innerWidth  - noBtn.offsetWidth  - margin;
   const maxY = window.innerHeight - noBtn.offsetHeight - margin;
-
+ 
   noBtn.style.transition = 'top 0.25s cubic-bezier(0.34,1.56,0.64,1), left 0.25s cubic-bezier(0.34,1.56,0.64,1)';
   noBtn.style.left = (margin + Math.random() * maxX) + 'px';
   noBtn.style.top  = (margin + Math.random() * maxY) + 'px';
-
+ 
   if (noAttempts <= taunts.length) heroSub.innerHTML = taunts[noAttempts - 1];
-
+ 
   growYesBtn();
 }
-
+ 
 /* ────── RESET ────── */
 function reset() {
   document.getElementById('response-yes').classList.remove('show');
@@ -389,7 +405,7 @@ function reset() {
   document.getElementById('hero-sub').textContent = "I'd love to take you somewhere truly special. What do you say?";
   goTo(0);
 }
-
+ 
 /* ────── INIT ────── */
 buildGrid('activities-grid', DATA.activities, 'activities', true);
 buildGrid('lunch-grid',      DATA.lunch,      'lunch',      false);
