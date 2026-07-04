@@ -6,6 +6,8 @@
   <title>Will You Go On a Date With Me?</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css"/>
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
@@ -144,9 +146,10 @@
       <ul id="modal-list"></ul>
     </div>
     <div class="modal-buttons">
-      <button class="btn-modal-yes" onclick="respond(true)">Yes, I'd love to! 🥰</button>
+      <button class="btn-modal-yes" id="modal-yes-btn" onclick="respond(true)">Yes, I'd love to! 🥰</button>
       <button class="btn-modal-no" onclick="respond(false)">Maybe another time…</button>
     </div>
+    <p id="email-status" style="font-size:0.8rem;color:var(--charcoal-light);font-style:italic;margin-top:0.8rem;min-height:1.1em;text-align:center;"></p>
   </div>
 </div>
 
